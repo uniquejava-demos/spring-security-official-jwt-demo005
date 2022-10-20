@@ -56,23 +56,47 @@ Refer to Dan's blog: https://www.danvega.dev/blog/2022/09/06/spring-security-jwt
 use it
 
 ```java
-    @Bean
-    JwtDecoder jwtDecoder(){
-            return NimbusJwtDecoder.withPublicKey(this.key).build();
-            }
+@Bean
+JwtDecoder jwtDecoder(){
+    return NimbusJwtDecoder.withPublicKey(this.key).build();
+}
 
 @Bean
-    JwtEncoder jwtEncoder(){
-            JWK jwk=new RSAKey.Builder(this.key).privateKey(this.priv).build();
-            JWKSource<SecurityContext> jwks=new ImmutableJWKSet<>(new JWKSet(jwk));
-        return new NimbusJwtEncoder(jwks);
-        }
+JwtEncoder jwtEncoder(){
+   JWK jwk=new RSAKey.Builder(this.key).privateKey(this.priv).build();
+   JWKSource<SecurityContext> jwks=new ImmutableJWKSet<>(new JWKSet(jwk));
+   return new NimbusJwtEncoder(jwks);
+}
 ```
 
 ## Random keys with java code
+see https://docs.spring.io/spring-authorization-server/docs/current/reference/html/getting-started.html
 
 ```java
+@Bean
+public KeyPair keyPair() {
+  KeyPair keyPair;
+  try {
+      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+      keyPairGenerator.initialize(2048);
+      keyPair = keyPairGenerator.generateKeyPair();
+  } catch (Exception ex) {
+      throw new IllegalStateException(ex);
+  }
+  return keyPair;
+}
 
+ @Bean
+ JwtDecoder jwtDecoder() {
+     return NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();
+ }
+
+ @Bean
+ JwtEncoder jwtEncoder() {
+     JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic()).privateKey(keyPair.getPrivate()).build();
+     JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+     return new NimbusJwtEncoder(jwks);
+ }
 ```
 
 ## Todo
